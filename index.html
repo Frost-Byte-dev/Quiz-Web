@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b14">
+  <title>Quiz Web — Play, Earn, Customize</title>
+  <style>
+    :root {
+      --bg: #0b0b14;
+      --panel: #141421;
+      --panel2: #1b1b2c;
+      --text: #f4f4ff;
+      --muted: #a5a5bd;
+      --purple: #a855f7;
+      --blue: #55c7ff;
+      --green: #4ade80;
+      --border: rgba(255,255,255,.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--text); background:
+        radial-gradient(circle at 15% 0%, rgba(168,85,247,.16), transparent 30rem),
+        radial-gradient(circle at 90% 10%, rgba(85,199,255,.1), transparent 28rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      min-height: 100vh;
+    }
+    button { font: inherit; cursor: pointer; }
+    .topbar {
+      position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-between;
+      align-items: center; gap: 16px; padding: 16px max(5vw, 18px);
+      background: rgba(11,11,20,.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { font-size: 1.15rem; font-weight: 900; letter-spacing: -.04em; }
+    .brand span { color: var(--purple); }
+    .wallet { border: 1px solid rgba(250,204,21,.25); background: rgba(250,204,21,.08);
+      color: #fde68a; padding: 9px 13px; border-radius: 999px; font-weight: 800; white-space: nowrap; }
+    main { width: min(1100px, 92vw); margin: 0 auto; padding: 34px 0 60px; }
+    .hero { padding: 34px 0 28px; }
+    .eyebrow { color: #c4b5fd; font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 800; }
+    h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); letter-spacing: -.06em; line-height: 1.02; margin: 12px 0; }
+    h1 .shine { background: linear-gradient(90deg, #c084fc, #67e8f9); -webkit-background-clip: text; color: transparent; }
+    p { color: var(--muted); line-height: 1.6; }
+    .hero p { max-width: 620px; font-size: 1.05rem; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 26px; }
+    .tab { border: 1px solid var(--border); background: var(--panel); color: var(--muted); padding: 10px 16px; border-radius: 12px; font-weight: 750; }
+    .tab.active { color: white; background: linear-gradient(135deg, #7e22ce, #4338ca); border-color: transparent; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin: 18px 0; }
+    h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); letter-spacing: -.04em; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+    .card { background: linear-gradient(160deg, rgba(255,255,255,.045), transparent 55%), var(--panel);
+      border: 1px solid var(--border); border-radius: 20px; padding: 20px; min-width: 0; }
+    .card-icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px;
+      font-size: 1.65rem; background: var(--panel2); margin-bottom: 18px; }
+    .card h3 { margin: 0 0 7px; font-size: 1.1rem; }
+    .card p { font-size: .92rem; margin: 0 0 16px; }
+    .meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .83rem; margin-bottom: 16px; }
+    .btn { border: 0; border-radius: 12px; padding: 11px 15px; font-weight: 850; color: white;
+      background: linear-gradient(100deg, #9333ea, #4f46e5); transition: transform .15s, filter .15s; }
+    .btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn.secondary { background: var(--panel2); border: 1px solid var(--border); }
+    .btn.full { width: 100%; }
+    .hidden { display: none !important; }
+    .quiz-box { max-width: 720px; margin: 0 auto; }
+    .progress-wrap { height: 7px; background: var(--panel2); border-radius: 99px; overflow: hidden; margin: 18px 0 24px; }
+    .progress { height: 100%; width: 0; background: linear-gradient(90deg, var(--purple), var(--blue)); transition: width .2s; }
+    .question { font-size: clamp(1.25rem, 3vw, 1.8rem); font-weight: 850; line-height: 1.35; margin: 16px 0 20px; }
+    .answers { display: grid; gap: 10px; }
+    .answer { text-align: left; width: 100%; padding: 14px 15px; color: var(--text); border: 1px solid var(--border);
+      background: var(--panel2); border-radius: 13px; }
+    .answer:hover:not(:disabled) { border-color: #a855f7; background: #211b35; }
+    .answer.correct { border-color: var(--green); background: rgba(74,222,128,.12); }
+    .answer.wrong { border-color: #fb7185; background: rgba(251,113,133,.1); }
+    .feedback { min-height: 28px; margin: 14px 0; font-weight: 750; }
+    .shop-item { display: flex; flex-direction: column; }
+    .item-art { min-height: 120px; border-radius: 15px; display: grid; place-items: center; font-size: 3.5rem;
+      background: radial-gradient(circle, rgba(168,85,247,.2), rgba(85,199,255,.05) 70%), var(--panel2); margin-bottom: 16px; }
+    .item-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
+    .price { color: #fde68a; font-weight: 900; white-space: nowrap; }
+    .avatar-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); gap: 18px; }
+    .avatar-preview { min-height: 270px; display: grid; place-items: center; border-radius: 18px;
+      background: radial-gradient(circle, rgba(168,85,247,.2), transparent 65%), var(--panel2); }
+    .avatar-emoji { font-size: 6rem; filter: drop-shadow(0 8px 20px rgba(168,85,247,.35)); }
+    .owned-list { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .chip { border: 1px solid var(--border); border-radius: 99px; padding: 7px 10px; background: var(--panel2); font-size: .85rem; }
+    .notice { border: 1px solid rgba(250,204,21,.2); background: rgba(250,204,21,.06); color: #e9d5a6; border-radius: 14px; padding: 13px 15px; font-size: .85rem; margin-top: 28px; }
+    .empty { text-align: center; padding: 36px 20px; }
+    footer { text-align: center; padding: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
+    @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } .avatar-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } .topbar { padding: 13px 4vw; } main { width: 92vw; padding-top: 20px; } .card { padding: 17px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">QUIZ<span>WEB</span> ✦</div>
+    <div class="wallet">🪙 <span id="credits">0</span> credits</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">Think fast. Earn rewards.</div>
+      <h1>Your brain is your<br><span class="shine">superpower.</span></h1>
+      <p>Answer quizzes, earn credits, and use your rewards to customize your avatar. How much can you earn?</p>
+    </section>
+
+    <nav class="tabs" aria-label="Website sections">
+      <button class="tab active" data-view="quizzes">🧠 Quizzes</button>
+      <button class="tab" data-view="shop">🛍️ Shop</button>
+      <button class="tab" data-view="avatar">🎭 My Avatar</button>
+    </nav>
+
+    <section id="quizzes-view">
+      <div class="section-head"><div><div class="eyebrow">Choose your challenge</div><h2>Quiz categories</h2></div></div>
+      <div class="grid" id="quiz-list"></div>
+    </section>
+
+    <section id="play-view" class="hidden">
+      <div class="quiz-box card">
+        <button class="btn secondary" id="back-quizzes">← All quizzes</button>
+        <div class="section-head"><div><div class="eyebrow" id="quiz-category">Quiz</div><h2 id="quiz-title">Challenge</h2></div><div class="price">🪙 <span id="quiz-reward">10</span> per correct</div></div>
+        <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+        <div class="meta"><span id="question-count">Question 1 of 5</span><span id="score">Score: 0</span></div>
+        <div class="question" id="question-text"></div>
+        <div class="answers" id="answer-list"></div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+        <button class="btn full hidden" id="next-question">Next question →</button>
+        <div id="quiz-result" class="hidden"></div>
+      </div>
+    </section>
+
+    <section id="shop-view" class="hidden">
+      <div class="section-head"><div><div class="eyebrow">Spend your hard-earned credits</div><h2>Cosmetic shop</h2><p>Buy an item once, then equip it in My Avatar.</p></div></div>
+      <div class="grid" id="shop-list"></div>
+    </section>
+
+    <section id="avatar-view" class="hidden">
+      <div class="section-head"><div><div class="eyebrow">Make it yours</div><h2>My avatar</h2></div></div>
+      <div class="avatar-layout">
+        <div class="card">
+          <div class="avatar-preview"><div class="avatar-emoji" id="avatar-emoji">😎</div></div>
+          <h3 id="avatar-title" style="text-align:center;margin-bottom:5px">Quiz Explorer</h3>
+          <p style="text-align:center;margin-top:0">Your virtual look</p>
+        </div>
+        <div class="card">
+          <h3>Equip an item</h3>
+          <p>Items you own appear here. Choose one to show it on your avatar.</p>
+          <div id="owned-list" class="owned-list"></div>
+          <div style="margin-top:22px">
+            <h3>Your stats</h3>
+            <p>Correct answers: <strong id="stat-correct">0</strong></p>
+            <p>Quizzes completed: <strong id="stat-quizzes">0</strong></p>
+            <p>Items owned: <strong id="stat-items">0</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="notice">Demo version: credits and items are saved in this browser on this device. Clearing browser data can reset them. This version does not yet have online accounts or shared leaderboards.</div>
+  </main>
+  <footer>QUIZWEB · Learn something. Earn something. ✦</footer>
+
+  <script>
+    const quizData = [
+      {
+        id: "general", title: "General Knowledge", category: "Brain power", icon: "🌍", description: "A little bit of everything.", reward: 10,
+        questions: [
+          { q: "Which planet is known as the Red Planet?", a: ["Venus", "Mars", "Jupiter", "Mercury"], correct: 1 },
+          { q: "How many sides does a hexagon have?", a: ["Five", "Six", "Seven", "Eight"], correct: 1 },
+          { q: "Which ocean is the largest on Earth?", a: ["Atlantic", "Indian", "Arctic", "Pacific"], correct: 3 },
+          { q: "What is the main gas plants absorb from the air for photosynthesis?", a: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"], correct: 2 },
+          { q: "How many minutes are in two hours?", a: ["60", "90", "120", "180"], correct: 2 }
+        ]
+      },
+      {
+        id: "science", title: "Science Lab", category: "Curious minds", icon: "🧪", description: "Explore the world around you.", reward: 15,
+        questions: [
+          { q: "What is H₂O commonly known as?", a: ["Salt", "Water", "Oxygen", "Sugar"], correct: 1 },
+          { q: "Which organ pumps blood around the human body?", a: ["Lungs", "Brain", "Heart", "Stomach"], correct: 2 },
+          { q: "What force pulls objects toward Earth?", a: ["Magnetism", "Gravity", "Friction", "Electricity"], correct: 1 },
+          { q: "Which part of a plant usually absorbs water from soil?", a: ["Flower", "Leaf", "Root", "Fruit"], correct: 2 },
+          { q: "At sea level, water normally boils at what temperature?", a: ["50°C", "75°C", "100°C", "150°C"], correct: 2 }
+        ]
+      },
+      {
+        id: "gaming", title: "Gaming Trivia", category: "Player one", icon: "🎮", description: "Test your gaming knowledge.", reward: 20,
+        questions: [
+          { q: "In Minecraft, which tool is typically used to mine stone?", a: ["Fishing rod", "Pickaxe", "Hoe", "Shears"], correct: 1 },
+          { q: "In chess, which piece moves in an L-shape?", a: ["Bishop", "Rook", "Knight", "Pawn"], correct: 2 },
+          { q: "Which of these is a classic arcade game?", a: ["Pac-Man", "Spreadsheet", "Calculator", "Notepad"], correct: 0 },
+          { q: "In many games, what does XP usually stand for?", a: ["Extra Power", "Experience Points", "Xtra Play", "Extreme Player"], correct: 1 },
+          { q: "How many players are on the field for one soccer team during regular play?", a: ["9", "10", "11", "12"], correct: 2 }
+        ]
+      }
+    ];
+
+    const shopItems = [
+      { id: "cap", name: "Shadow Cap", icon: "🧢", price: 100, rarity: "Common" },
+      { id: "glasses", name: "Cool Shades", icon: "🕶️", price: 180, rarity: "Uncommon" },
+      { id: "headphones", name: "Neon Headphones", icon: "🎧", price: 350, rarity: "Rare" },
+      { id: "crown", name: "Royal Crown", icon: "👑", price: 600, rarity: "Epic" },
+      { id: "jacket", name: "Cyber Jacket", icon: "🧥", price: 750, rarity: "Epic" },
+      { id: "aura", name: "Golden Aura", icon: "✨", price: 1200, rarity: "Legendary" }
+    ];
+
+    const defaultState = { credits: 0, owned: [], equipped: null, correct: 0, completed: 0, completedQuizzes: [] };
+    let state;
+    try {
+      state = { ...defaultState, ...JSON.parse(localStorage.getItem("quizweb-save") || "{}") };
+      if (!Array.isArray(state.owned)) state.owned = [];
+      if (!Array.isArray(state.completedQuizzes)) state.completedQuizzes = [];
+    } catch { state = { ...defaultState }; }
+
+    let currentQuiz = null, questionIndex = 0, currentScore = 0, answered = false, earnedThisQuiz = 0;
+    const $ = (id) => document.getElementById(id);
+    const save = () => { try { localStorage.setItem("quizweb-save", JSON.stringify(state)); } catch {} };
+    const updateWallet = () => { $("credits").textContent = state.credits; };
+    function showView(view) {
+      ["quizzes", "play", "shop", "avatar"].forEach(v => $(v + "-view").classList.toggle("hidden", v !== view));
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.view === (view === "play" ? "quizzes" : view)));
+      if (view === "shop") renderShop();
+      if (view === "avatar") renderAvatar();
+    }
+    function renderQuizzes() {
+      $("quiz-list").innerHTML = quizData.map(quiz => {
+        const done = state.completedQuizzes.includes(quiz.id);
+        return `<article class="card">
+          <div class="card-icon">${quiz.icon}</div><h3>${quiz.title}</h3><p>${quiz.description}</p>
+          <div class="meta"><span>📝 ${quiz.questions.length} questions</span><span>🪙 ${quiz.reward}/correct</span></div>
+          <button class="btn full" data-start="${quiz.id}">${done ? "Play again" : "Start quiz"} →</button>
+        </article>`;
+      }).join("");
+      $("quiz-list").querySelectorAll("[data-start]").forEach(btn => btn.addEventListener("click", () => startQuiz(btn.dataset.start)));
+    }
+    function startQuiz(id) {
+      currentQuiz = quizData.find(q => q.id === id);
+      if (!currentQuiz) return;
+      questionIndex = 0; currentScore = 0; earnedThisQuiz = 0; answered = false;
+      $("quiz-result").classList.add("hidden");
+      $("question-text").classList.remove("hidden");
+      $("answer-list").classList.remove("hidden");
+      $("next-question").classList.add("hidden");
+      $("quiz-title").textContent = currentQuiz.title;
+      $("quiz-category").textContent = currentQuiz.category;
+      $("quiz-reward").textContent = currentQuiz.reward;
+      showView("play"); renderQuestion();
+    }
+    function renderQuestion() {
+      answered = false;
+      const item = currentQuiz.questions[questionIndex];
+      $("question-count").textContent = `Question ${questionIndex + 1} of ${currentQuiz.questions.length}`;
+      $("score").textContent = `Score: ${currentScore}`;
+      $("progress").style.width = `${(questionIndex / currentQuiz.questions.length) * 100}%`;
+      $("question-text").textContent = item.q;
+      $("feedback").textContent = "";
+      $("next-question").classList.add("hidden");
+      $("answer-list").innerHTML = item.a.map((answer, i) => `<button class="answer" data-answer="${i}">${String.fromCharCode(65+i)}. ${answer}</button>`).join("");
+      $("answer-list").querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => chooseAnswer(Number(btn.dataset.answer))));
+    }
+    function chooseAnswer(choice) {
+      if (answered) return;
+      answered = true;
+      const item = currentQuiz.questions[questionIndex];
+      const buttons = [...$("answer-list").querySelectorAll("button")];
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === item.correct) btn.classList.add("correct");
+        else if (i === choice) btn.classList.add("wrong");
+      });
+      if (choice === item.correct) {
+        currentScore++; earnedThisQuiz += currentQuiz.reward; state.credits += currentQuiz.reward; state.correct++;
+        $("feedback").textContent = `✅ Correct! +${currentQuiz.reward} credits`;
+        $("feedback").style.color = "#4ade80";
+      } else {
+        $("feedback").textContent = `Not quite! The correct answer is ${item.a[item.correct]}.`;
+        $("feedback").style.color = "#fda4af";
+      }
+      updateWallet(); save();
+      $("score").textContent = `Score: ${currentScore}`;
+      $("next-question").textContent = questionIndex === currentQuiz.questions.length - 1 ? "See results →" : "Next question →";
+      $("next-question").classList.remove("hidden");
+    }
+    function finishQuiz() {
+      state.completed++;
+      state.completedQuizzes = [...new Set([...state.completedQuizzes, currentQuiz.id])];
+      save(); updateWallet();
+      $("progress").style.width = "100%";
+      $("question-text").classList.add("hidden");
+      $("answer-list").classList.add("hidden");
+      $("next-question").classList.add("hidden");
+      $("feedback").textContent = "";
+      $("quiz-result").classList.remove("hidden");
+      $("quiz-result").innerHTML = `<div class="empty"><div style="font-size:3rem">🎉</div><h2>Quiz complete!</h2><p>You got <strong>${currentScore}/${currentQuiz.questions.length}</strong> correct.</p><p>You earned <strong style="color:#fde68a">${earnedThisQuiz} credits</strong> this round.</p><button class="btn" id="play-again">Play again</button> <button class="btn secondary" id="go-shop">Visit shop</button></div>`;
+      $("play-again").addEventListener("click", () => startQuiz(currentQuiz.id));
+      $("go-shop").addEventListener("click", () => showView("shop"));
+      renderQuizzes();
+    }
+    $("next-question").addEventListener("click", () => {
+      if (!answered) return;
+      if (questionIndex < currentQuiz.questions.length - 1) { questionIndex++; renderQuestion(); }
+      else finishQuiz();
+    });
+    $("back-quizzes").addEventListener("click", () => showView("quizzes"));
+    function renderShop() {
+      $("shop-list").innerHTML = shopItems.map(item => {
+        const owned = state.owned.includes(item.id);
+        const equipped = state.equipped === item.id;
+        const canBuy = state.credits >= item.price;
+        return `<article class="card shop-item">
+          <div class="item-art">${item.icon}</div><div class="eyebrow">${item.rarity}</div><h3>${item.name}</h3>
+          <p>Give your avatar a new look.</p><div class="item-bottom"><span class="price">🪙 ${item.price}</span>
+          <button class="btn ${owned ? "secondary" : ""}" data-buy="${item.id}" ${!owned && !canBuy ? "disabled" : ""}>${equipped ? "Equipped" : owned ? "Owned" : "Buy"}</button></div>
+        </article>`;
+      }).join("");
+      $("shop-list").querySelectorAll("[data-buy]").forEach(btn => btn.addEventListener("click", () => {
+        const item = shopItems.find(i => i.id === btn.dataset.buy);
+        if (!item) return;
+        if (state.owned.includes(item.id)) {
+          state.equipped = item.id; save(); renderShop(); renderAvatar(); return;
+        }
+        if (state.credits < item.price) return;
+        state.credits -= item.price; state.owned.push(item.id); state.equipped = item.id;
+        save(); updateWallet(); renderShop();
+      }));
+    }
+    function renderAvatar() {
+      const item = shopItems.find(i => i.id === state.equipped);
+      $("avatar-emoji").textContent = item ? item.icon : "😎";
+      $("avatar-title").textContent = item ? `Quiz Explorer · ${item.name}` : "Quiz Explorer";
+      $("stat-correct").textContent = state.correct;
+      $("stat-quizzes").textContent = state.completed;
+      $("stat-items").textContent = state.owned.length;
+      $("owned-list").innerHTML = state.owned.length ? state.owned.map(id => {
+        const ownedItem = shopItems.find(i => i.id === id);
+        if (!ownedItem) return "";
+        const isEquipped = state.equipped === id;
+        return `<button class="chip" data-equip="${id}">${ownedItem.icon} ${ownedItem.name}${isEquipped ? " ✓" : ""}</button>`;
+      }).join("") : `<span class="chip">No items yet — earn credits in quizzes!</span>`;
+      $("owned-list").querySelectorAll("[data-equip]").forEach(btn => btn.addEventListener("click", () => {
+        state.equipped = btn.dataset.equip; save(); renderAvatar();
+      }));
+    }
+    document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => showView(tab.dataset.view)));
+    updateWallet(); renderQuizzes(); renderShop(); renderAvatar();
+  </script>
+</body>
+</html>
